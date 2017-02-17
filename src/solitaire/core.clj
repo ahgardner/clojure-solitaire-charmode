@@ -1,6 +1,6 @@
 (ns solitaire.core
-  (:gen-class)
   (:require [solitaire.display :as display]
+            [solitaire.time :as tm]
             [solitaire.common :as com]
             [clojure.string :as str]
             [clojure.pprint]))
@@ -32,7 +32,8 @@
      :top -1
      :piles (vec (repeat suits-in-deck -1))
      :layout (deal-layout deck)
-     :layout-hidden-cards (vec (range com/columns-in-layout))}))
+     :layout-hidden-cards (vec (range com/columns-in-layout))
+     :start-time (tm/now)}))
  
 ; COMMANDS
 
@@ -224,7 +225,14 @@
 
 (defn check-win [table]
   (if (every? #(= (com/rank %) 12) (:piles table))
-    (do (display/show table) (println "YOU WIN !!!!!!!!") nil)
+    (let [start-time (:start-time table)
+          end-time (tm/now)
+          my-time (tm/diff start-time end-time)
+          best-time (tm/best-time! my-time)] 
+      (display/show table) 
+      (println "YOU WIN !!!!!!!!")
+      (when (= my-time best-time) (println (str "BEST TIME SET AT " my-time " SECONDS!")))
+      nil)
     table))
 
 ; Auto-play feature
@@ -235,8 +243,8 @@
    Thanks, Michael, for idiomatizing it."
   [layout]
   (let [col (apply min-key
-         #(or (some-> % layout last com/rank) Long/MAX_VALUE)
-         (range (count layout)))]
+                   #(or (some-> % layout last com/rank) Long/MAX_VALUE)
+                   (range (count layout)))]
     (if (empty? (layout col)) -1 col)))
 
 (defn autoplay
@@ -259,9 +267,7 @@
 
 ; Misc.
 
-(defn bye-bye []
-  (println "Good bye!")
-  nil)
+(defn bye-bye [] (println "Good bye!")) ; returns nil
 
 (defn dump [table]
   (clojure.pprint/pprint table)
@@ -279,7 +285,7 @@
         "N" (turn table)                 ; Turn three cards
         "P" (check-win (play command-data table))  ; Play a card
         "U" (play (str "-" command-data) table) ; Unplay from piles
-        "A" (autoplay table)             ; Play out the layout
+        "A" (autoplay table)  ; Play out the layout
         "Q" (bye-bye)                    ; Quit the game
         "R" (deal)                       ; Re-deal
         ("?" "H") (do (help) table)      ; Help
@@ -291,7 +297,7 @@
 
 (defn -main
   [& args]
-  (help) 
+  (help)
   (loop [table (deal)]
     (when table
       (display/show table)
