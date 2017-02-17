@@ -9,14 +9,14 @@
 
 (def pref-file "solitaire.prefs")
 
-(defn get-time []
+(defn- get-time []
   (let [file-exists (.exists (io/as-file pref-file))]
     (if file-exists
       (let [hsstr (slurp pref-file)]
         (read-string (second (str/split hsstr #"="))))
       0)))
 
-(defn set-time! [new-time]
+(defn- set-time! [new-time]
       (spit pref-file (str "best-time=" new-time)))
 
 (defn best-time! [new-time]

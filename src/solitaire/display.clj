@@ -8,7 +8,7 @@
 (def ANSI_RED "\u001B[31m")
 (def ANSI_RESET "\u001B[0m")
 
-(defn card-symbol
+(defn- card-symbol
   "Return a string for displaying the card"
   [card]
   (if (neg? card)

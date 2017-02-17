@@ -16,7 +16,7 @@
 
 ; Initial layout
 
-(defn deal-layout
+(defn- deal-layout
   "create columns-in-layout piles,
    where the nth pile contains n cards"
   [deck]
@@ -24,7 +24,7 @@
              :let [start (/ (* i (inc i)) 2)]]
          (subvec deck start (+ start i 1)))))
 
-(defn deal
+(defn- deal
   "Shuffle and deal, returning a table (game map)"
   []
   (let [deck (shuffle (range cards-in-deck))]
@@ -39,7 +39,7 @@
 
 ; Help command
 
-(defn help []
+(defn- help []
   (println)
   (println "N      turn next card from deck")
   (println "P x    play from layout pile x (0 for the turned card)")
@@ -53,7 +53,7 @@
 
 ; Next card command
 
-(defn turn 
+(defn- turn 
   "Turn over the next card in the pack"
   [table] 
   (let [top (:top table)
@@ -67,17 +67,17 @@
 
 ; Get the selected card
 
-(defn get-from-pack [table]
+(defn- get-from-pack [table]
   (let [indx (:top table)]
     (if (neg? indx) nil ((:pack table) indx))))
 
-(defn get-from-piles [x table]
+(defn- get-from-piles [x table]
   (let [piles (:piles table)]
     (if (or (neg? x) (>= x (count piles)) (neg? (piles x)))
       nil
       (piles x))))
 
-(defn get-from-layout [x y table]
+(defn- get-from-layout [x y table]
   (let [layout (:layout table)
         hiddens (:layout-hidden-cards table)]
     (if (or (neg? x) (>= x (count layout)))
@@ -88,7 +88,7 @@
           nil
           (column y))))))
   
-(defn which-card 
+(defn- which-card 
   "Identify card to be played" 
   [type x y table]
   (case type
@@ -99,7 +99,7 @@
 
 ; Remove the played card from its old location
 
-(defn remove-from-pack 
+(defn- remove-from-pack 
   [table]
   (let [pack (:pack table)
         top (:top table)
@@ -107,13 +107,13 @@
         new-table1 (assoc-in table [:pack] new-pack)]
     (assoc-in new-table1 [:top] (dec top))))
 
-(defn remove-from-piles
+(defn- remove-from-piles
   [x table]
   (let [piles (:piles table)
         card (piles x)]
     (assoc-in table [:piles x] (dec card))))
   
-(defn remove-from-layout 
+(defn- remove-from-layout 
   [x y table]
   (let [layout (:layout table)
         column (nth layout x)
@@ -124,7 +124,7 @@
       (assoc-in table1 [:layout-hidden-cards x] (dec hidden))
       table1)))
 
-(defn remove-card [type x y table]
+(defn- remove-card [type x y table]
   (case type
     :pack (remove-from-pack table)
     :ace-pile (remove-from-piles x table)
@@ -133,7 +133,7 @@
 
 ; Playing the card
                    
-(defn play-to-piles [type x y table]
+(defn- play-to-piles [type x y table]
   (if (= type :ace-pile)
     nil ; Makes no sense to play pile card to itself
     (let [card (which-card type x y table)
@@ -151,7 +151,7 @@
 
 ; Play to the layout
 
-(defn play-on-this-layout-column? [col-index layout card]
+(defn- play-on-this-layout-column? [col-index layout card]
   (let [col (nth layout col-index)
         rank (com/rank card)
         color (com/color card)]
@@ -162,7 +162,7 @@
       col-index
       false))) 
   
-(defn play-to-layout [type x y table]
+(defn- play-to-layout [type x y table]
   (let [card (which-card type x y table)
         layout (:layout table)
         col-index (some #(play-on-this-layout-column? % layout card) (range (count layout)))]
@@ -175,7 +175,7 @@
             new-table (assoc-in table [:layout col-index] new-column)]
         (remove-card type x y new-table)))))  
   
-(defn parse-play-args [args-string table]
+(defn- parse-play-args [args-string table]
   "INPUT:
    0        play the turned card from the pack
    x y      play from layout column x (1-7), row y (1-N)
@@ -203,7 +203,7 @@
           [type x y])))
     (catch Exception e [nil -1 -1])))
                   
-(defn play 
+(defn- play 
   [args table]
   "Play the card from the given position, to the ace piles or to the layout."
   (let [parms (parse-play-args args table)
@@ -223,7 +223,7 @@
 
 ; Check for game complete
 
-(defn check-win [table]
+(defn- check-win [table]
   (if (every? #(= (com/rank %) 12) (:piles table))
     (let [start-time (:start-time table)
           end-time (tm/now)
@@ -237,7 +237,7 @@
 
 ; Auto-play feature
 
-(defn find-autoplay-col
+(defn- find-autoplay-col
   "Which column (0-6) has the lowest playable card?
    -1 means no cards remain to play.
    Thanks, Michael, for idiomatizing it."
@@ -247,7 +247,7 @@
                    (range (count layout)))]
     (if (empty? (layout col)) -1 col)))
 
-(defn autoplay
+(defn- autoplay
   "Play from the layout, always choosing a card of minimum rank,
    until the layout is empty, or you can't play a card."
   [table]
@@ -267,15 +267,15 @@
 
 ; Misc.
 
-(defn bye-bye [] (println "Good bye!")) ; returns nil
+(defn- bye-bye [] (println "Good bye!")) ; returns nil
 
-(defn dump [table]
+(defn- dump [table]
   (clojure.pprint/pprint table)
   table)
 
 ; Dispatch command
 
-(defn do-command [table]
+(defn- do-command [table]
   (let [input (read-line)
         command-str (if (empty? input) "z" (str input))
         command-key (str/upper-case (first command-str))
