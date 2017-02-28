@@ -2,6 +2,7 @@
   (:require [solitaire.display :as display]
             [solitaire.time :as tm]
             [solitaire.common :as com]
+            [solitaire.undo :as undo]
             [clojure.string :as str]
             [clojure.pprint]))
 
@@ -27,13 +28,14 @@
 (defn- deal
   "Shuffle and deal, returning a table (game map)"
   []
-  (let [deck (shuffle (range cards-in-deck))]
-    {:pack (subvec deck initial-cards-in-layout)
-     :top -1
-     :piles (vec (repeat suits-in-deck -1))
-     :layout (deal-layout deck)
-     :layout-hidden-cards (vec (range com/columns-in-layout))
-     :start-time (tm/now)}))
+  (let [deck (shuffle (range cards-in-deck))
+        table
+        {:pack (subvec deck initial-cards-in-layout)
+         :top -1
+         :piles (vec (repeat suits-in-deck -1))
+         :layout (deal-layout deck)
+         :layout-hidden-cards (vec (range com/columns-in-layout))}]
+    (tm/start table)))
  
 ; COMMANDS
 
@@ -42,12 +44,13 @@
 (defn- help []
   (println)
   (println "N      turn next card from deck")
-  (println "P x    play from layout pile x (0 for the turned card)")
+  (println "P x    play from top of layout pile x (0 for the turned card)")
   (println "P x y  play from layout pile x, starting at row y")
   (println "U x    unplay from ace pile x to layout")
   (println "R      re-deal")
   (println "A      auto-play (from layout, lowest cards first)")
   (println "Q      quit")
+  (println "Z      undo last play")
   (println "?/H    show help")
   (println))
 
@@ -225,13 +228,10 @@
 
 (defn- check-win [table]
   (if (every? #(= (com/rank %) 12) (:piles table))
-    (let [start-time (:start-time table)
-          end-time (tm/now)
-          my-time (tm/diff start-time end-time)
-          best-time (tm/best-time! my-time)] 
+    (let [best-time (tm/best-time! table)] 
       (display/show table) 
       (println "YOU WIN !!!!!!!!")
-      (when (= my-time best-time) (println (str "BEST TIME SET AT " my-time " SECONDS!")))
+      (when best-time (println (str "BEST TIME SET AT " best-time " SECONDS!")))
       nil)
     table))
 
@@ -273,6 +273,12 @@
   (clojure.pprint/pprint table)
   table)
 
+(defn- undo [table]
+  (let [prev (undo/undo table)]
+    (if prev
+      prev
+      (com/beep table "Can't undo before doing anything"))))
+
 ; Dispatch command
 
 (defn- do-command [table]
@@ -290,6 +296,7 @@
         "R" (deal)                       ; Re-deal
         ("?" "H") (do (help) table)      ; Help
         "D" (dump table)                 ; Dump state for debugging
+        "Z" (undo table)
         (com/beep table (str "Unknown command:" command-str)))  ; other
       (com/beep table "No command"))))
 
@@ -299,6 +306,7 @@
   [& args]
   (help)
   (loop [table (deal)]
-    (when table
-      (display/show table)
-      (recur (do-command table)))))
+    (display/show table)
+    (let [newtable (do-command table)]
+      (when newtable (recur (undo/chain newtable table))))))
+
