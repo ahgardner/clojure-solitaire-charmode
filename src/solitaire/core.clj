@@ -4,7 +4,8 @@
             [solitaire.common :as com]
             [solitaire.undo :as undo]
             [clojure.string :as str]
-            [clojure.pprint]))
+            [clojure.pprint])
+  (:gen-class))
 
 ; Klondike solitaire (character mode - no graphics)
 
