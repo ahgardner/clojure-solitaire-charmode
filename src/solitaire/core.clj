@@ -1,8 +1,8 @@
 (ns solitaire.core
   (:require [solitaire.display :as display]
-            [solitaire.time :as tm]
             [solitaire.common :as com]
-            [solitaire.undo :as undo]
+            [little-game-lib.undo :as undo]
+            [little-game-lib.time :as tm]
             [clojure.string :as str]
             [clojure.pprint])
   (:gen-class))
@@ -15,6 +15,8 @@
 (def suits-in-deck 4)
 (def cards-to-turn 3)
 (def initial-cards-in-layout 28)
+
+(def pref-file "solitaire.prefs")
 
 ; Initial layout
 
@@ -229,7 +231,7 @@
 
 (defn- check-win [table]
   (if (every? #(= (com/rank %) 12) (:piles table))
-    (let [best-time (tm/best-time! table)] 
+    (let [best-time (tm/best-time! table pref-file)] 
       (display/show table) 
       (println "YOU WIN !!!!!!!!")
       (when best-time (println (str "BEST TIME SET AT " best-time " SECONDS!")))
