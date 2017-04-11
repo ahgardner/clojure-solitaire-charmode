@@ -286,7 +286,7 @@
 
 (defn- do-command [table]
   (let [input (read-line)
-        command-str (if (empty? input) "z" (str input))
+        command-str (if (empty? input) "N" (str input))
         command-key (str/upper-case (first command-str))
         command-data (str/trim (subs command-str 1))]
     (if-not (empty? command-str)
