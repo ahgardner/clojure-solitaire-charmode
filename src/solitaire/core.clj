@@ -270,7 +270,12 @@
 
 ; Misc.
 
-(defn- bye-bye [] (println "Good bye!")) ; returns nil
+(defn- bye-bye [table]
+  (println "Do you really want to quit?")
+  (let [reply (str/upper-case (read-line))]
+    (if (= reply "Y")
+      (println "Good bye!") ; returns nil
+      table)))
 
 (defn- dump [table]
   (clojure.pprint/pprint table)
@@ -295,7 +300,7 @@
         "P" (check-win (play command-data table))  ; Play a card
         "U" (play (str "-" command-data) table) ; Unplay from piles
         "A" (autoplay table)  ; Play out the layout
-        "Q" (bye-bye)                    ; Quit the game
+        "Q" (bye-bye table)               ; Quit the game
         "R" (deal)                       ; Re-deal
         ("?" "H") (do (help) table)      ; Help
         "D" (dump table)                 ; Dump state for debugging
