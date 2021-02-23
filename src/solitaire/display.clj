@@ -8,6 +8,10 @@
 (def ANSI_RED "\u001B[31m")
 (def ANSI_RESET "\u001B[0m")
 
+(defn clear-screen []
+  (print (str (char 27) "[2J")) ; clear screen
+  (print (str (char 27) "[;H"))) ; move cursor to the top left corner of the screen  ; Last card played from the deck
+
 (defn- card-symbol
   "Return a string for displaying the card"
   [card]
@@ -19,8 +23,7 @@
         display))))
 
 (defn show [table]
-  
-  ; Last card played from the deck
+  (clear-screen)
   (let [top (:top table)
         pack (:pack table)]
     (println (if (< top 0) "--" 
@@ -53,3 +56,5 @@
       (println (nth display-rows i))))
   
   (flush)(Thread/sleep 200))
+
+ 

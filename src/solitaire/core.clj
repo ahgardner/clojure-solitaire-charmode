@@ -11,6 +11,8 @@
 
 ; Arthur Gardner Summer 2016
 
+; Feb. 2021 - show your time and best time; updated common library to use java.time
+
 (def cards-in-deck 52)
 (def suits-in-deck 4)
 (def cards-to-turn 3)
@@ -45,6 +47,7 @@
 ; Help command
 
 (defn- help []
+  (display/clear-screen)
   (println)
   (println "N      turn next card from deck")
   (println "P x    play from top of layout pile x (0 for the turned card)")
@@ -55,7 +58,9 @@
   (println "Q      quit")
   (println "Z      undo last play")
   (println "?/H    show help")
-  (println))
+  (println)
+  (println "Press Enter to continue")
+  (read-line))
 
 ; Next card command
 
@@ -232,9 +237,8 @@
 (defn- check-win [table]
   (if (every? #(= (com/rank %) 12) (:piles table))
     (let [best-time (tm/best-time! table pref-file)] 
-      (display/show table) 
-      (println "YOU WIN !!!!!!!!")
-      (when best-time (println (str "BEST TIME SET AT " best-time " SECONDS!")))
+      (display/show table)
+      (println (str "Hurray!  Your time " (tm/get-time-diff table) "s.  Best time " best-time "s."))
       nil)
     table))
 
